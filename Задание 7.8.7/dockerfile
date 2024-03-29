@@ -1,0 +1,13 @@
+FROM alpine:latest
+
+# Установка необходимых пакетов
+RUN apk update && apk add --no-cache wget
+
+# Копирование скрипта для скачивания favicon
+COPY download_favicon.sh /usr/local/bin/
+
+# Установка прав на выполнение
+RUN chmod +x /usr/local/bin/download_favicon.sh
+
+# Запуск скрипта при запуске контейнера
+CMD ["sh", "-c", "wget -qO- $SITE_URL/favicon.ico > favicon.ico && echo 'Favicon downloaded successfully!'"]
