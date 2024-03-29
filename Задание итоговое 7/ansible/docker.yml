@@ -1,0 +1,73 @@
+- name: Установка Docker на серверах приложений
+  hosts: database
+  become: true
+  tasks:
+    - name: Установка необходимых системных пакетов
+      when: ansible_distribution == 'CentOS'  # Проверка операционной системы на CentOS
+      yum:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - yum-utils
+        - device-mapper-persistent-data
+        - lvm2
+
+    - name: Добавление репозитория Docker для CentOS
+      when: ansible_distribution == 'CentOS'  # Проверка операционной системы на CentOS
+      yum_repository:
+        name: docker-ce-stable
+        description: Docker CE Stable - $basearch
+        baseurl: https://download.docker.com/linux/centos/8/$basearch/stable
+        gpgcheck: yes
+        gpgkey: https://download.docker.com/linux/centos/gpg
+        enabled: yes
+
+    - name: Установка Docker для CentOS
+      when: ansible_distribution == 'CentOS'  # Проверка операционной системы на CentOS
+      yum:
+        name: docker-ce
+        state: present
+
+    - name: Запуск службы Docker для CentOS
+      when: ansible_distribution == 'CentOS'  # Проверка операционной системы на CentOS
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Установка Docker для Ubuntu
+      when: ansible_distribution == 'Ubuntu'  # Проверка операционной системы на Ubuntu
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg-agent
+        - software-properties-common
+
+    - name: Добавление GPG-ключа Docker для Ubuntu
+      when: ansible_distribution == 'Ubuntu'  # Проверка операционной системы на Ubuntu
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Добавление репозитория Docker для Ubuntu
+      when: ansible_distribution == 'Ubuntu'  # Проверка операционной системы на Ubuntu
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+
+    - name: Установка Docker для Ubuntu
+      when: ansible_distribution == 'Ubuntu'  # Проверка операционной системы на Ubuntu
+      apt:
+        name: docker-ce
+        state: present
+
+    - name: Запуск службы Docker для Ubuntu
+      when: ansible_distribution == 'Ubuntu'  # Проверка операционной системы на Ubuntu
+      service:
+        name: docker
+        state: started
+        enabled: yes

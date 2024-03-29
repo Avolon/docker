@@ -1,0 +1,38 @@
+- name: Install psycopg2-binary
+  hosts: database
+  become: true
+  tasks:
+    - name: Install psycopg2-binary
+      package:
+        name: python3-psycopg2
+        state: present
+
+- name: Create PostgreSQL database and user
+  hosts: database
+  become: true
+  tasks:
+    - name: Install PostgreSQL
+      apt:
+        name: "postgresql-{{ postgresql_version }}"
+        state: present
+      vars:
+        postgresql_version: "{{ hostvars[inventory_hostname]['postgresql_version'] }}"
+        postgresql_data_dir: "{{ hostvars[inventory_hostname]['postgresql_data_dir'] }}"
+    
+    - name: Ensure PostgreSQL service is running
+      service:
+        name: postgresql
+        state: started
+        enabled: true
+
+    - name: Create PostgreSQL database
+      postgresql_db:
+        name: test
+        state: present
+
+    - name: Create PostgreSQL user
+      postgresql_user:
+        name: docker
+        password: "qwer12345678"
+        priv: "*.*:ALL"
+        state: present

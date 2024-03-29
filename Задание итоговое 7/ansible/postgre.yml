@@ -1,0 +1,43 @@
+- name: Install psycopg2-binary and create PostgreSQL database and user
+  hosts: database
+  become: true
+  vars_prompt:
+    - name: postgres_password
+      prompt: "Enter PostgreSQL password"
+      private: yes
+  tasks:
+    - name: Set permissions on Ansible temporary files
+      file:
+        path: "{{ ansible_env.HOME }}/.ansible/tmp"
+        state: directory
+        owner: "{{ ansible_user_id }}"
+        group: "{{ ansible_user_id }}"
+        mode: "0700"
+    - name: Install psycopg2-binary
+      package:
+        name: python3-psycopg2
+        state: present
+    - name: Install PostgreSQL
+      apt:
+        name: "postgresql-{{ postgresql_version }}"
+        state: present
+      vars:
+        postgresql_version: "{{ hostvars[inventory_hostname]['postgresql_version'] }}"
+        postgresql_data_dir: "{{ hostvars[inventory_hostname]['postgresql_data_dir'] }}"
+    - name: Ensure PostgreSQL service is running
+      service:
+        name: postgresql
+        state: started
+        enabled: true
+    - name: Create PostgreSQL database
+      ansible.builtin.postgresql_db:
+        name: test
+        state: present
+        login_user: postgres
+        login_password: "{{ postgres_password }}"
+    - name: Create PostgreSQL user
+      postgresql_user:
+        name: docker
+        password: "{{ postgres_password }}"
+        priv: "*.*:ALL"
+        state: present
