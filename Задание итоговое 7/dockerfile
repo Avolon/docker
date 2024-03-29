@@ -1,0 +1,24 @@
+  GNU nano 6.2                                                                           /home/avolon/docker/dockerfile
+# Используем базовый образ Python 3
+FROM python:3
+
+# Устанавливаем необходимые библиотеки Flask, Psycopg2 и ConfigParser
+RUN pip install Flask psycopg2-binary configparser
+
+# Создаем директорию приложения в контейнере
+WORKDIR /srv/app
+
+# Создаем папку conf внутри /srv/app/
+RUN mkdir -p conf
+
+# Копируем код приложения и конфигурационный файл в контейнер
+COPY web.py ./
+COPY web.conf ./conf/
+COPY conf/web.conf ./conf/
+
+# Определяем переменную окружения для указания настройки Flask
+ENV FLASK_APP=web.py
+
+# Запускаем приложение Flask при старте контейнера
+CMD ["flask", "run", "--host=0.0.0.0"]
+
